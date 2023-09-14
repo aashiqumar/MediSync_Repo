@@ -5,14 +5,21 @@ import RIcons from 'react-native-vector-icons/FontAwesome';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useRoute } from '@react-navigation/native';
 import { NavigateToScreen } from '../../utils/NavigationUtils';
+import { auth, db } from '../../../FirebaseConfig';
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from 'firebase/auth';
+import { doc, addDoc, collection } from 'firebase/firestore';
+
 
 const SignupPage2 = ({ navigation }) => {
 
   const route = useRoute();
 
   const { name, email, dobString } = route.params;
-
-
+  const [country, setCountry] = useState({});
+  const [dob, setDob] = useState({});
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isClicked, setIsClicked] = useState(true);
 
@@ -22,16 +29,40 @@ const SignupPage2 = ({ navigation }) => {
     setIsClicked(!isClicked);
   }
 
-//   const handleNavigation = () => {
-//     navigation.navigate('SignupPage2', {
-//       name, email, dob
-//     })
-//   }
+  const user = auth.currentUser?.uid;
 
-  const [country, setCountry] = useState({});
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  async function register () {
+
+    await createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        create();
+      })
+      .catch((error) => console.log(error));
+
+  }
+
+  async function create () {
+
+    await addDoc(collection(db, "caretakers", user, "data"), {
+      name: name,
+      email: email,
+      dobString: dobString,
+      phoneNumber: phoneNumber
+    })
+    .then(() => {
+      console.log('Data Submitted');
+      sendEmailVerification(user);
+
+      NavigateToScreen(navigation, 'BtmCaretaker');
+
+      
+
+    })
+    .catch((error) => console.log(error));
+
+  }
+
+
 
   const onCountryChange = (selectedCountry) => {
     setCountry(selectedCountry);
@@ -104,7 +135,9 @@ const SignupPage2 = ({ navigation }) => {
 
           <View style={{ paddingLeft: 30, paddingRight: 30, paddingTop: 10, }}>
 
-            <TouchableOpacity onPress={() => { NavigateToScreen(navigation, 'CaretakerDash'); console.log( 'Name: '+name + ' Email: '+email + ' DOB: '+dobString + ' Phone: ' + phoneNumber + ' password: ' + password + ' cPassword ' + confirmPassword )}} style={ Styles.button }>
+            <TouchableOpacity onPress={() => { 
+              register(); 
+            }} style={ Styles.button }>
               <Text style={{ color: '#FFF' }} >Sign Up</Text>
             </TouchableOpacity>
 

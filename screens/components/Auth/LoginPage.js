@@ -2,15 +2,30 @@ import { View, Text, SafeAreaView, StyleSheet, Image, Dimensions, TouchableOpaci
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import RIcons from 'react-native-vector-icons/FontAwesome';
+import { auth } from '../../../FirebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { NavigateToScreen } from '../../utils/NavigationUtils';
 
 const LoginPage = ({ navigation }) => {
 
   const [isClicked, setIsClicked] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const eyeOpen = true;
 
   const handleEye = () => {
     setIsClicked(!isClicked);
+  }
+
+  async function LoginUser () {
+
+    await signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        NavigateToScreen(navigation, 'BtmCaretaker');
+      })
+      .catch((error) => console.log(error));
+
   }
 
   return (
@@ -32,11 +47,11 @@ const LoginPage = ({ navigation }) => {
           <View style={Styles.divider}></View>
 
           <View style={{ paddingHorizontal: 30, paddingTop: 60 }}>
-            <TextInput style={Styles.textBox} placeholder="Enter Your Email" keyboardType='email-address'/>
+            <TextInput onChangeText={(text) => setEmail(text)} style={Styles.textBox} placeholder="Enter Your Email" keyboardType='email-address'/>
 
 
             <View style={[Styles.textBox, { marginTop: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}]}>
-              <TextInput style={[Styles.textBox, {paddingLeft: 0, width: '100%' }]} placeholder="Enter Your Password" secureTextEntry={isClicked}/>
+              <TextInput onChangeText={(text) => setPassword(text)} style={[Styles.textBox, {paddingLeft: 0, width: '100%' }]} placeholder="Enter Your Password" secureTextEntry={isClicked}/>
               <TouchableOpacity style={{  }} onPress={handleEye}>
                 <RIcons name={isClicked ? 'eye-slash' : 'eye'} size={20} color={isClicked ? '#A1A4B2' : '#8E97FD'} />
               </TouchableOpacity>
@@ -48,8 +63,8 @@ const LoginPage = ({ navigation }) => {
 
           <View style={{ paddingLeft: 30, paddingRight: 30, paddingTop: 20, }}>
 
-            <TouchableOpacity style={ Styles.button }>
-              <Text style={{ color: '#FFF' }} >Sign Up</Text>
+            <TouchableOpacity onPress={LoginUser} style={ Styles.button }>
+              <Text style={{ color: '#FFF' }} >Login</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => NavigateToScreen(navigation, 'LoginPage')}  style={{ justifyContent: 'center', alignItems: 'center' }}>
