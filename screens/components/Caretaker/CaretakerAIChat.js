@@ -1,47 +1,53 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { Configuration, OpenAIApi } from 'openai';
 import OpenAI from 'openai';
-import axios from "axios";
 
 
 const CaretakerAIChat = ({ navigation }) => {
 
-  const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
+  const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
 
-  const handleSubmit = async () => {
-    const response = await axios.post(
-      "https://api.openai.com/v1/engines/davinci/completions",
-      {
-        text: message,
-        prompt: "Reply to my message:",
-        temperature: 0.7,
-        top_p: 0.9,
-      },
-      {
-        headers: {
-          Authorization: `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`,
-        },
-      }
-    );
+  const openai = new OpenAI({
+    apiKey: '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',
+  });  
 
-    setReply(response.data.choices[0].text);
+  const handleSend = async () => {
+    try {
+      const response = await openai.completions({
+        engine: 'davinci',
+        prompt: `${input}`,
+        maxTokens: 50, // Adjust as needed
+      });
+  
+      setOutput(response.choices[0].text);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
   
   return (
     <View style={styles.container}>
-        <View>
-      <TextInput
-        placeholder="Enter your message"
-        onChangeText={(text) => setMessage(text)}
-      />
-      <Button
-        title="Send"
-        onPress={handleSubmit}
-      />
-      <Text>Reply: {reply}</Text>
-    </View>
+        <Text style={styles.title}>AI Chatbot</Text>
+        <View style={styles.chatContainer}>
+            <View style={styles.inputContainer}>
+                <TextInput
+                    autoFocus={true}
+                    style={styles.input}
+                    placeholder="Type your message here"
+                    value={input}
+                    onChangeText={setInput}
+                />
+                <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+                    <Text style={styles.sendButtonText}>Send</Text>
+                </TouchableOpacity>    
+            </View>
+
+            <View style={styles.outputContainer}>
+              <Text style={styles.output}>{output}</Text>
+            </View>
+        </View>
     </View>
   );
 };
