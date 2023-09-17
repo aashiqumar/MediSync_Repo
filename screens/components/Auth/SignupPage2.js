@@ -31,37 +31,38 @@ const SignupPage2 = ({ navigation }) => {
 
   const user = auth.currentUser?.uid;
 
-  async function register () {
-
-    await createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        create();
-      })
-      .catch((error) => console.log(error));
-
+  async function register() {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      // Send email verification if needed
+      const user = auth.currentUser;
+      if (user && !user.emailVerified) {
+        await sendEmailVerification(user);
+      }
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
-
-  async function create () {
-
-    await addDoc(collection(db, "caretakers", user, "data"), {
-      name: name,
-      email: email,
-      dobString: dobString,
-      phoneNumber: phoneNumber
-    })
-    .then(() => {
+  
+  async function create() {
+    const user = auth.currentUser;
+  
+    try {
+      await addDoc(collection(db, "caretakers", user.uid, "data"), {
+        name: name,
+        email: email,
+        dobString: dobString,
+        phoneNumber: phoneNumber,
+      });
       console.log('Data Submitted');
-      sendEmailVerification(user);
-
-      NavigateToScreen(navigation, 'BtmCaretaker');
-
-      
-
-    })
-    .catch((error) => console.log(error));
-
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
-
 
 
   const onCountryChange = (selectedCountry) => {
@@ -93,7 +94,7 @@ const SignupPage2 = ({ navigation }) => {
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-            <View style={{ justifyContent: 'center', alignItems: 'center', width: 60, padding: 10, backgroundColor: '#F1F1F1', borderRadius: 20, height: 60, marginRight: 0  }}>
+            {/* <View style={{ justifyContent: 'center', alignItems: 'center', width: 60, padding: 10, backgroundColor: '#F1F1F1', borderRadius: 20, height: 60, marginRight: 0  }}>
                 <CountryPicker
                     {...{
                         countryCode: country.cca2 || 'LK',
@@ -105,7 +106,7 @@ const SignupPage2 = ({ navigation }) => {
                         onSelect: onCountryChange,
                     }}
                 />
-            </View>
+            </View> */}
             
 
             <TextInput onChangeText={text => setPhoneNumber(text)} value={phoneNumber} style={[Styles.textBox, {marginBottom: 10, width: 230,}]} placeholder="Enter Your Phone Number" keyboardType='number-pad'/>
@@ -135,8 +136,12 @@ const SignupPage2 = ({ navigation }) => {
 
           <View style={{ paddingLeft: 30, paddingRight: 30, paddingTop: 10, }}>
 
-            <TouchableOpacity onPress={() => { 
-              register(); 
+            <TouchableOpacity onPress={async () => {
+              const registrationSuccess = await register();
+              if (registrationSuccess) {
+                await create();
+                NavigateToScreen(navigation, 'BtmCaretaker');
+              }
             }} style={ Styles.button }>
               <Text style={{ color: '#FFF' }} >Sign Up</Text>
             </TouchableOpacity>

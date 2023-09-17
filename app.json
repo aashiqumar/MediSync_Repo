@@ -3,6 +3,7 @@
     "name": "medisync_repo",
     "slug": "medisync_repo",
     "version": "1.0.0",
+    "main": "node_modules/expo/AppEntry.js",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,10 +22,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.aashiqumar.medisync_repo"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e38188e0-a3a5-426e-8e3e-0ad77599bf17"
+      }
     }
   }
 }

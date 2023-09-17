@@ -1,9 +1,20 @@
-import { View, Text, StyleSheet, Dimensions, SafeAreaView, ScrollView, Image, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, SafeAreaView, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState } from 'react';
 import Quotes from './Quotes.json';
-import { FloatingActionButton, Icon } from 'react-native-paper';
 import ActionButton from 'react-native-action-button';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { NavigateToScreen } from '../../utils/NavigationUtils';
+import { auth, db } from '../../../FirebaseConfig';
+import { collection, getDocs } from 'firebase/firestore';
+
+const Card = ({ name, relationship }) => {
+  return (
+    <View style={styles.card}>
+      <Text style={styles.name}>{name}</Text>
+      <Text style={styles.test}>{relationship}</Text>
+    </View>
+  );
+};
 
 const HealthQuoteCard = ({ index }) => {
 
@@ -19,24 +30,42 @@ const HealthQuoteCard = ({ index }) => {
 };
 
 
-const AddPatients = () => {
+
+const AddPatients = ({ navigation }) => {
 
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const handleButtonPress = () => {
+    navigation.navigate('WritePatient');
+  }
+
+  const user = auth.currentUser?.uid;
+
+  const [cardsData, setCardsData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const querySnapshot = await getDocs(collection(db, 'patients', user, "data" ));
+      const data = querySnapshot.docs.map((doc) => doc.data());
+      setCardsData(data);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" style={{ flex:1, alignItems: 'center', justifyContent: 'center' }} />;
+  }
+
 
   return (
     <View style={Styles.background}>
 
-                <ActionButton  buttonColor="#8E97FD">
-                    <ActionButton.Item useNativeDriver={true} buttonColor='#9b59b6' title="New Patient" onPress={() => console.log('New Task')}>
-                    <Ionicons name="md-create" style={Styles.actionButtonIcon} />
-                    </ActionButton.Item>
-                    <ActionButton.Item useNativeDriver={true} buttonColor='#3498db' title="Notifications" onPress={() => {}}>
-                    <Ionicons name="md-notifications-off" style={Styles.actionButtonIcon} />
-                    </ActionButton.Item>
-                    <ActionButton.Item useNativeDriver={true} buttonColor='#1abc9c' title="All Tasks" onPress={() => {}}>
-                    <Ionicons name="checkmark-done" style={Styles.actionButtonIcon} />
-                    </ActionButton.Item>
-                </ActionButton>
+    <TouchableOpacity onPress={handleButtonPress} style={Styles.fab} >
+      <AntDesign name="plus" size={24} color="white" />
+    </TouchableOpacity>
 
       <SafeAreaView>
 
@@ -61,6 +90,19 @@ const AddPatients = () => {
                         <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#FFF' }}>All Patients</Text>
                     </View>
 
+                    <TouchableOpacity  >
+
+                      <View style={{paddingTop: 20}}>
+                      {cardsData.map((card, index) => (
+                        <Card
+                          key={index}
+                          name={card.name}
+                          relationship={card.relationship}
+                        />
+                      ))}
+                      </View>
+
+                    </TouchableOpacity>
                     
 
                 </View>
@@ -159,6 +201,19 @@ const Styles = StyleSheet.create({
         textAlign: 'left',
       },
 
+      fab: {
+        position: 'absolute',
+        width: 56,
+        height: 56,
+        alignItems: 'center',
+        justifyContent: 'center',
+        right: 20,
+        bottom: 20,
+        backgroundColor: '#8E97FD', // Change the color as needed
+        borderRadius: 30,
+        elevation: 8,
+      },
+
       actionButtonIcon: {
         fontSize: 20,
         height: 22,
@@ -191,4 +246,34 @@ const Styles = StyleSheet.create({
         fontSize: 16,
         color: '#555',
       },
-  })
+  });
+
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: 'white',
+      borderRadius: 10,
+      padding: 1,
+      margin: 5,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    
+    name: {
+      fontWeight: 'bold',
+      fontSize: 20,
+      marginTop: 10,
+      marginHorizontal: 10,
+    },
+    test: {
+      color: '#000',
+      marginHorizontal: 10,
+      marginBottom: 10,
+    },
+  });
+  

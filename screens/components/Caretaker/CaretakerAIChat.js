@@ -1,109 +1,152 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
-import { Configuration, OpenAIApi } from 'openai';
-import OpenAI from 'openai';
+import React, {useState} from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+  SafeAreaView,
+} from 'react-native';
+import {generateResponse} from '../../utils/chatgpt';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+export default function CaretakerAIChat() {
+  const [messages, setMessages] = useState([]);
+  const [userInput, setUserInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-const CaretakerAIChat = ({ navigation }) => {
+  const sendMessage = async () => {
+    if (!userInput) {
+      return;
+    }
 
-  const [input, setInput] = useState('');
-  const [output, setOutput] = useState('');
+    setIsLoading(true);
 
-  const openai = new OpenAI({
-    apiKey: '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',
-  });  
+    setMessages(prevMessages => [
+      ...prevMessages,
+      {text: userInput, sender: 'user'},
+    ]);
 
-  const handleSend = async () => {
-    try {
-      const response = await openai.completions({
-        engine: 'davinci',
-        prompt: `${input}`,
-        maxTokens: 50, // Adjust as needed
-      });
-  
-      setOutput(response.choices[0].text);
-    } catch (error) {
-      console.error('Error sending message:', error);
+    const botResponse = await generateResponse(userInput);
+
+    setIsLoading(false);
+
+    setMessages(prevMessages => [
+      ...prevMessages,
+      {text: botResponse, sender: 'chatgpt'},
+    ]);
+
+    setUserInput('');
+  };
+
+  const renderSendButton = () => {
+    if (isLoading) {
+      // Render the loading icon if isLoading is true
+      return (
+        <ActivityIndicator
+          size="small"
+          color="#fff"
+          style={styles.loadingIcon}
+        />
+      );
+    } else {
+      // Render the send button if isLoading is false
+      return (
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={sendMessage}
+          disabled={isLoading}>
+          <Icon name="send" size={20} style={{padding: 10}} color="#fff" />
+        </TouchableOpacity>
+      );
     }
   };
-  
-  return (
-    <View style={styles.container}>
-        <Text style={styles.title}>AI Chatbot</Text>
-        <View style={styles.chatContainer}>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    autoFocus={true}
-                    style={styles.input}
-                    placeholder="Type your message here"
-                    value={input}
-                    onChangeText={setInput}
-                />
-                <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-                    <Text style={styles.sendButtonText}>Send</Text>
-                </TouchableOpacity>    
-            </View>
 
-            <View style={styles.outputContainer}>
-              <Text style={styles.output}>{output}</Text>
-            </View>
-        </View>
+  return (
+    <SafeAreaView style={{backgroundColor: '#FFF'}}>
+    
+    <View style={styles.container}>
+      <View style={{ paddingTop: 30, alignItems: 'center' }}>
+        <Text style={{ fontSize: 30 }}>MediSync AI</Text>
+      </View>
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        {messages.map((msg, index) => (
+          <View
+            key={index}
+            style={[
+              styles.message,
+              msg.sender === 'user'
+                ? styles.userMessage
+                : styles.chatgptMessage,
+            ]}>
+            <Text>{msg.text}</Text>
+          </View>
+        ))}
+      </ScrollView>
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={userInput}
+          onChangeText={setUserInput}
+          placeholder="Write a Medicine name & Dosage"
+          style={styles.input}
+          editable={!isLoading} // Disable input when loading
+        />
+        {renderSendButton()}
+      </View>
     </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 0,
+    height: 600,
+    backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  scrollView: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
-  chatContainer: {
-    width: '90%',
-    height: '70%',
-    borderWidth: 1,
+  message: {
+    padding: 10,
+    marginBottom: 5,
+    maxWidth: '70%',
     borderRadius: 10,
-    overflow: 'hidden',
+  },
+  userMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#8E97FD',
+    color: 'white',
+    marginBottom: 10,
+  },
+  chatgptMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#e5e5e5',
+    marginBottom: 10,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#F2F2F2',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
   },
   input: {
     flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 10,
+    borderRadius: 10,
     marginRight: 10,
-    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+  },
+  loadingIcon: {
+    marginLeft: 10,
   },
   sendButton: {
-    backgroundColor: '#2196F3',
-    padding: 10,
-    borderRadius: 20,
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  outputContainer: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: '#fff',
-  },
-  output: {
-    fontSize: 16,
+    backgroundColor: '#8E97FD',
+    borderRadius: 100,
+    marginRight: 5,
   },
 });
 
 
-export default CaretakerAIChat

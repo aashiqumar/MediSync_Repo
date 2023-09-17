@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, Dimensions, SafeAreaView, ScrollView, Image, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react';
 import Quotes from './Quotes.json';
-import { FloatingActionButton, Icon } from 'react-native-paper';
 import ActionButton from 'react-native-action-button';
 import { AntDesign } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
@@ -9,8 +8,6 @@ import { auth } from '../../../FirebaseConfig';
 import { NavigateToScreen } from '../../utils/NavigationUtils';
 
 const CaretakerSettings = ({ navigation }) => {
-
-
 
     const handleSignOut = async () => {
       try {

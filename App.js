@@ -1,3 +1,4 @@
+import "react-native-url-polyfill/auto";
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +16,7 @@ import CaretakerAIChat from './screens/components/Caretaker/CaretakerAIChat';
 import { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { NavigateToScreen } from './screens/utils/NavigationUtils';
+import WritePatients from "./screens/components/Caretaker/WritePatients";
 
 
 const Tab = createBottomTabNavigator();
@@ -50,7 +52,6 @@ export const BottomNavBar = () => {
         },
       
     })}>
-      <Tab.Screen name="Home" component={CaretakerDash} options={{headerShown: false,}}/>
       <Tab.Screen name="Patients" component={AddPatients} options={{headerShown: false,}}/>
       <Tab.Screen name="AI" component={CaretakerAIChat} options={{headerShown: false,}}/>
       <Tab.Screen name="Settings" component={CaretakerSettings} options={{headerShown: false,}}/>
@@ -98,6 +99,8 @@ export default function App() {
         <Stack.Screen name='CaretakerDash' component={CaretakerDash}/>
         <Stack.Screen name='BtmCaretaker' component={BottomNavBar}/>
         <Stack.Screen name='CaretakerAIChat' component={CaretakerAIChat}/>
+        <Stack.Screen name="Patients" component={AddPatients}/>
+        <Stack.Screen name='WritePatient' component={WritePatients}/>
       </Stack.Navigator>
 
       
